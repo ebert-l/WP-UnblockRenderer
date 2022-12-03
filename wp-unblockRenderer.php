@@ -59,6 +59,61 @@ if(! function_exists('wpUR_style_loader_tag')){
 }
 
 /*
+* Settings Page
+*/
+if(! function_exists('wpUR_createSettings')){
+    function wpUR_createSettings(){
+        add_settings_section(
+            'wpUR_settings_section',
+            'WP Unblock Renderer',
+            'wpUR_settings_callback',
+            'wpUR_options'
+        );
+
+        add_settings_field(
+            'wpUR_setting_unblockStyles',
+            'Unblock Styles',
+            'wpUR_settings_unblockStylesField',
+            'wpUR_options',
+            'wpUR_settings_section'
+        );
+    }
+}
+
+add_action('admin_init', 'wpUR_addMenu');
+function wpUR_addMenu(){
+    add_menu_page(
+        'Unblock Renderer',
+        'UP Unblock Renderer',
+        'manage_options',
+        'wp-unblockRenderer',
+        'wpUR_settings_page',
+        '',
+        20
+    );
+}
+
+function wpUR_settings_page(){
+    echo "Test";
+    // include plugin_dir_path(__FILE__).'settings.php';
+}
+
+if(! function_exists('wpUR_settings_callback')){
+    function wpUR_settings_callback(){
+        echo '<h1>WP Unblock Renderer Settings</h1>';
+    }
+}
+
+if(! function_exists('wpUR_settings_unblockStylesField')){
+    function wpUR_settings_unblockStylesField(){
+        ?>
+        <input type="checkbox" name="wpUR_unblockStyles"></input>
+        <?php
+    }
+}
+
+
+/*
 Activation, Deactivaiton and Deinstallations
 */
 if(! function_exists('unblockRenderer_deactivate')){
@@ -89,14 +144,16 @@ if(! function_exists('unblockRenderer_activate')){
         add_option('wpUR_Active', 'true');
         if(! function_exists('wpUR_registerOptions')){wpUR_registerOptions();}
         if(! function_exists('wpUR_setDefaultOptions')){wpUR_setDefaultOptions();}
-
+        
         register_deactivation_hook(__FILE__, 'unblockRenderer_deactivate');
         register_uninstall_hook(__FILE__, 'unblockRenderer_deinstall');
     }
     register_activation_hook(__FILE__, 'unblockRenderer_activate');
 }
 
-
+if(! function_exists('wpUR_createSettings')){
+    add_action('admin_init', 'wpUR_createSettings');
+}
 
 
 ?>
