@@ -79,22 +79,23 @@ if(! function_exists('wpUR_createSettings')){
         );
     }
 }
+add_action('admin_init', 'wpUR_createSettings');
 
-add_action('admin_init', 'wpUR_addMenu');
 function wpUR_addMenu(){
-    add_menu_page(
+    add_options_page(
         'Unblock Renderer',
-        'UP Unblock Renderer',
+        'WP Unblock Renderer',
         'manage_options',
-        'wp-unblockRenderer',
+        'wpur',
         'wpUR_settings_page',
-        '',
-        20
     );
 }
+add_action('admin_init', 'wpUR_addMenu');
 
 function wpUR_settings_page(){
-    echo "Test";
+    ?>
+        <h1>Test</h1>
+    <?php
     // include plugin_dir_path(__FILE__).'settings.php';
 }
 
