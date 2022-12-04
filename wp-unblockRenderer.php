@@ -25,9 +25,39 @@ if(! function_exists('wpUR_isActive')){
 
 if(! function_exists('wpUR_registerOptions')){
     function wpUR_registerOptions(){
-        register_setting('wpUR_options', 'wpUR_unblockStyles');
-        register_setting('wpUR_options', 'wpUR_unblockScripts');
-        register_setting('wpUR_options', 'wpUR_noBlockFilter');
+        register_setting('wpUR', 'wpUR_options');
+        add_settings_section(
+            'wpUR_section_options',
+            'WP UR Setting Section',
+            'wpUR_section_option_callback',
+            'wpUR'
+        );
+        add_settings_field(
+            'wpUR_field_style',
+            'Unblock Styles',
+            'wpUR_field_style_callback',
+            'wpUR',
+            'wpUR_section_options',
+            array(
+                'label_for' => 'wpUR_field_style'
+            )
+        );
+
+        // register_setting('wpUR_options', 'wpUR_unblockScripts');
+        // register_setting('wpUR_options', 'wpUR_noBlockFilter');
+    }
+    add_action('admin_init', 'wpUR_registerOptions');
+
+    function wpUR_section_option_callback($args){
+        ?>
+            <p id="<?php echo esc_attr( $args['id'] ); ?>"><?php esc_html_e( 'Follow the white rabbit.', 'wpUR' ); ?></p>
+        <?php
+    }
+
+    function wpUR_field_style_callback($args){
+        ?>
+            <p>Setting Feld...</p>
+        <?php
     }
 }
 
@@ -37,18 +67,44 @@ if(! function_exists('wpUR_setDefaultOptions')){
         add_option('wpUR_unblockScripts', 'true');
         add_option('wpUR_noBlockFilter', array());
     }
+    add_action('admin_init', 'wpUR_setDefaultOptions');
 }
 
 if(! function_exists('wpUR_style_loader_tag')){
     function wpUR_style_loader_tag($html, $handle) {
-        $async_html = str_replace( 'media=\'all\'', 'media="print" onload="this.media=\'all\'; this.removeAttribute(\'onload\')"', $html);
+        $wp_unblock_renderer_options = get_option( 'wp_unblock_renderer_option_name' ); // Array of All Options
+        $unblock_styles_0 = false;
+        if(array_key_exists('unblock_styles_0', $wp_unblock_renderer_options)){
+            $unblock_styles_0 = $wp_unblock_renderer_options['unblock_styles_0']; // Unblock Styles
+        }
+
+        $filter_which_scripts_styles_should_not_be_effected_2 = $wp_unblock_renderer_options['filter_which_scripts_styles_should_not_be_effected_2']; // Filter (which Scripts/Styles should not be effected)
+        
+        if(!$unblock_styles_0){
+            return $html;
+        }
+
+        $async_html = str_replace( 'media=\'all\'', 'media="print" onload="this.media=\'all\'; //this.removeAttribute(\'onload\');"', $html);
         return $async_html;
     }
     add_filter('style_loader_tag', 'wpUR_style_loader_tag', 10, 4);
 }
 
-if(! function_exists('wpUR_style_loader_tag')){
+if(! function_exists('wpUR_script_loader_tag')){
     function wpUR_script_loader_tag($html, $handle) {
+        $wp_unblock_renderer_options = get_option( 'wp_unblock_renderer_option_name' ); // Array of All Options
+        
+        $unblock_scripts_1 = false;
+        if(array_key_exists('unblock_scripts_1', $wp_unblock_renderer_options)){
+            $unblock_scripts_1 = $wp_unblock_renderer_options['unblock_scripts_1']; // Unblock Scripts
+        }
+
+        $filter_which_scripts_styles_should_not_be_effected_2 = $wp_unblock_renderer_options['filter_which_scripts_styles_should_not_be_effected_2']; // Filter (which Scripts/Styles should not be effected)
+        
+        if(!$unblock_scripts_1){
+            return $html;
+        }
+
         if(str_contains($html, "bookly")){
             return str_replace('type=\'text/javascript\'', 'type="text/javascript" defer', $html);
         }
@@ -61,33 +117,14 @@ if(! function_exists('wpUR_style_loader_tag')){
 /*
 * Settings Page
 */
-if(! function_exists('wpUR_createSettings')){
-    function wpUR_createSettings(){
-        add_settings_section(
-            'wpUR_settings_section',
-            'WP Unblock Renderer',
-            'wpUR_settings_callback',
-            'wpUR_options'
-        );
-
-        add_settings_field(
-            'wpUR_setting_unblockStyles',
-            'Unblock Styles',
-            'wpUR_settings_unblockStylesField',
-            'wpUR_options',
-            'wpUR_settings_section'
-        );
-    }
-}
-add_action('admin_init', 'wpUR_createSettings');
-
+/*
 function wpUR_addMenu(){
     add_options_page(
         'Unblock Renderer',
         'WP Unblock Renderer',
         'manage_options',
-        'wpur',
-        'wpUR_settings_page',
+        'wp-UnblockRenderer',
+        'wpUR_settings_page'
     );
 }
 add_action('admin_init', 'wpUR_addMenu');
@@ -95,23 +132,148 @@ add_action('admin_init', 'wpUR_addMenu');
 function wpUR_settings_page(){
     ?>
         <h1>Test</h1>
+
     <?php
+        settings_fields('wpUR');
+        do_settings_sections('wpUR');
+        submit_button('Save Settings');
     // include plugin_dir_path(__FILE__).'settings.php';
 }
+*/
 
-if(! function_exists('wpUR_settings_callback')){
-    function wpUR_settings_callback(){
-        echo '<h1>WP Unblock Renderer Settings</h1>';
-    }
-}
+/**
+ * Generated by the WordPress Option Page generator
+ * at http://jeremyhixon.com/wp-tools/option-page/
+ */
 
-if(! function_exists('wpUR_settings_unblockStylesField')){
-    function wpUR_settings_unblockStylesField(){
-        ?>
-        <input type="checkbox" name="wpUR_unblockStyles"></input>
-        <?php
-    }
+class WPUnblockRenderer {
+	private $wp_unblock_renderer_options;
+
+	public function __construct() {
+		add_action( 'admin_menu', array( $this, 'wp_unblock_renderer_add_plugin_page' ) );
+		add_action( 'admin_init', array( $this, 'wp_unblock_renderer_page_init' ) );
+	}
+
+	public function wp_unblock_renderer_add_plugin_page() {
+		add_options_page(
+			'WP Unblock Renderer', // page_title
+			'WP Unblock Renderer', // menu_title
+			'manage_options', // capability
+			'wp-unblock-renderer', // menu_slug
+			array( $this, 'wp_unblock_renderer_create_admin_page' ) // function
+		);
+	}
+
+	public function wp_unblock_renderer_create_admin_page() {
+		$this->wp_unblock_renderer_options = get_option( 'wp_unblock_renderer_option_name' ); ?>
+
+		<div class="wrap">
+			<h2>WP Unblock Renderer</h2>
+			<p>Here you can set the options on how WP Unblock Renderer should behave.</p>
+			<?php settings_errors(); ?>
+
+			<form method="post" action="options.php">
+				<?php
+					settings_fields( 'wp_unblock_renderer_option_group' );
+					do_settings_sections( 'wp-unblock-renderer-admin' );
+					submit_button();
+				?>
+			</form>
+		</div>
+	<?php }
+
+	public function wp_unblock_renderer_page_init() {
+		register_setting(
+			'wp_unblock_renderer_option_group', // option_group
+			'wp_unblock_renderer_option_name', // option_name
+			array( $this, 'wp_unblock_renderer_sanitize' ) // sanitize_callback
+		);
+
+		add_settings_section(
+			'wp_unblock_renderer_setting_section', // id
+			'Settings', // title
+			array( $this, 'wp_unblock_renderer_section_info' ), // callback
+			'wp-unblock-renderer-admin' // page
+		);
+
+		add_settings_field(
+			'unblock_styles_0', // id
+			'Unblock Styles', // title
+			array( $this, 'unblock_styles_0_callback' ), // callback
+			'wp-unblock-renderer-admin', // page
+			'wp_unblock_renderer_setting_section' // section
+		);
+
+		add_settings_field(
+			'unblock_scripts_1', // id
+			'Unblock Scripts', // title
+			array( $this, 'unblock_scripts_1_callback' ), // callback
+			'wp-unblock-renderer-admin', // page
+			'wp_unblock_renderer_setting_section' // section
+		);
+
+		add_settings_field(
+			'filter_which_scripts_styles_should_not_be_effected_2', // id
+			'Filter (which Scripts/Styles should not be effected) *coming soon', // title
+			array( $this, 'filter_which_scripts_styles_should_not_be_effected_2_callback' ), // callback
+			'wp-unblock-renderer-admin', // page
+			'wp_unblock_renderer_setting_section' // section
+		);
+	}
+
+	public function wp_unblock_renderer_sanitize($input) {
+		$sanitary_values = array();
+		if ( isset( $input['unblock_styles_0'] ) ) {
+			$sanitary_values['unblock_styles_0'] = $input['unblock_styles_0'];
+		}
+
+		if ( isset( $input['unblock_scripts_1'] ) ) {
+			$sanitary_values['unblock_scripts_1'] = $input['unblock_scripts_1'];
+		}
+
+		if ( isset( $input['filter_which_scripts_styles_should_not_be_effected_2'] ) ) {
+			$sanitary_values['filter_which_scripts_styles_should_not_be_effected_2'] = esc_textarea( $input['filter_which_scripts_styles_should_not_be_effected_2'] );
+		}
+
+		return $sanitary_values;
+	}
+
+	public function wp_unblock_renderer_section_info() {
+		
+	}
+
+	public function unblock_styles_0_callback() {
+		printf(
+			'<input type="checkbox" name="wp_unblock_renderer_option_name[unblock_styles_0]" id="unblock_styles_0" value="unblock_styles_0" %s> <label for="unblock_styles_0">Load all Styles asynchronously without blocking the renderer. (This is a huge loading speed improvement)</label>',
+			( isset( $this->wp_unblock_renderer_options['unblock_styles_0'] ) && $this->wp_unblock_renderer_options['unblock_styles_0'] === 'unblock_styles_0' ) ? 'checked' : ''
+		);
+	}
+
+	public function unblock_scripts_1_callback() {
+		printf(
+			'<input type="checkbox" name="wp_unblock_renderer_option_name[unblock_scripts_1]" id="unblock_scripts_1" value="unblock_scripts_1" %s> <label for="unblock_scripts_1">Load all .js Scripts asynchronously without blocking the renderer. (This is a huge loading speed improvement)</label>',
+			( isset( $this->wp_unblock_renderer_options['unblock_scripts_1'] ) && $this->wp_unblock_renderer_options['unblock_scripts_1'] === 'unblock_scripts_1' ) ? 'checked' : ''
+		);
+	}
+
+	public function filter_which_scripts_styles_should_not_be_effected_2_callback() {
+		printf(
+			'<textarea class="large-text" rows="5" name="wp_unblock_renderer_option_name[filter_which_scripts_styles_should_not_be_effected_2]" id="filter_which_scripts_styles_should_not_be_effected_2">%s</textarea>',
+			isset( $this->wp_unblock_renderer_options['filter_which_scripts_styles_should_not_be_effected_2'] ) ? esc_attr( $this->wp_unblock_renderer_options['filter_which_scripts_styles_should_not_be_effected_2']) : ''
+		);
+	}
+
 }
+if ( is_admin() )
+	$wp_unblock_renderer = new WPUnblockRenderer();
+
+/* 
+ * Retrieve this value with:
+ * $wp_unblock_renderer_options = get_option( 'wp_unblock_renderer_option_name' ); // Array of All Options
+ * $unblock_styles_0 = $wp_unblock_renderer_options['unblock_styles_0']; // Unblock Styles
+ * $unblock_scripts_1 = $wp_unblock_renderer_options['unblock_scripts_1']; // Unblock Scripts
+ * $filter_which_scripts_styles_should_not_be_effected_2 = $wp_unblock_renderer_options['filter_which_scripts_styles_should_not_be_effected_2']; // Filter (which Scripts/Styles should not be effected)
+ */
 
 
 /*
@@ -121,39 +283,28 @@ if(! function_exists('unblockRenderer_deactivate')){
     // Called when Plugin gets deactivated
     function unblockRenderer_deactivate(){
         delete_option('wpUR_Active');
-        unregister_setting('wpUR_options', 'wpUR_Active');
     }
 }
 
 if(! function_exists('unblockRenderer_deinstall')){
     // Called when Plugin gets deinstalled
     function unblockRenderer_deinstall(){
-        delete_option('wpUR_unblockStyles');
-        delete_option('wpUR_unblockScripts');
-        delete_option('wpUR_noBlockFilter');
+        delete_option( 'wp_unblock_renderer_option_name' );
         unregister_setting('wpUR_options', 'wpUR_unblockStyles');
-        unregister_setting('wpUR_options', 'wpUR_unblockScripts');
-        unregister_setting('wpUR_options', 'wpUR_noBlockFilter');
-
     }
 }
 
 if(! function_exists('unblockRenderer_activate')){
     //Called when Plugin gets activated
     function unblockRenderer_activate(){
-        register_setting('wpUR_options', 'wpUR_Active');
         add_option('wpUR_Active', 'true');
-        if(! function_exists('wpUR_registerOptions')){wpUR_registerOptions();}
-        if(! function_exists('wpUR_setDefaultOptions')){wpUR_setDefaultOptions();}
+        if(function_exists('wpUR_registerOptions')){wpUR_registerOptions();}
+        if(function_exists('wpUR_setDefaultOptions')){wpUR_setDefaultOptions();}
         
         register_deactivation_hook(__FILE__, 'unblockRenderer_deactivate');
         register_uninstall_hook(__FILE__, 'unblockRenderer_deinstall');
     }
     register_activation_hook(__FILE__, 'unblockRenderer_activate');
-}
-
-if(! function_exists('wpUR_createSettings')){
-    add_action('admin_init', 'wpUR_createSettings');
 }
 
 
